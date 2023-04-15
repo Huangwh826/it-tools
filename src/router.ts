@@ -1,9 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 import { layouts } from './layouts/index';
 import HomePage from './pages/Home.page.vue';
 import NotFound from './pages/404.page.vue';
 import { tools } from './tools';
-import { config } from './config';
 
 const toolsRoutes = tools.map(({ path, name, component, ...config }) => ({
   path,
@@ -17,23 +16,20 @@ const toolsRedirectRoutes = tools
     ({ path, redirectFrom }) => redirectFrom?.map((redirectSource) => ({ path: redirectSource, redirect: path })) ?? [],
   );
 
-const router = createRouter({
-  history: createWebHistory(config.app.baseUrl),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomePage,
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('./pages/About.vue'),
-    },
-    ...toolsRoutes,
-    ...toolsRedirectRoutes,
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
-  ],
-});
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'home',
+    component: HomePage,
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('./pages/About.vue'),
+  },
+  ...toolsRoutes,
+  ...toolsRedirectRoutes,
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
+];
 
-export default router;
+export { routes };

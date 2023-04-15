@@ -1,25 +1,41 @@
-import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { createHead } from '@vueuse/head';
 // eslint-disable-next-line import/no-unresolved
-import { registerSW } from 'virtual:pwa-register';
+import { ViteSSG } from 'vite-ssg';
 import { plausible } from './plugins/plausible.plugin';
 
 import 'virtual:uno.css';
 
-registerSW();
-
 import { naive } from './plugins/naive.plugin';
 
 import App from './App.vue';
-import router from './router';
+import { routes } from './router';
+import { config } from './config';
+import { useToolStore } from './tools/tools.store';
 
-const app = createApp(App);
+export const createApp = ViteSSG(
+  // the root component
+  App,
+  // vue-router options
+  { routes, base: config.app.baseUrl },
+  // function to have custom setups
+  async ({ app, router, routes, isClient, initialState }) => {
+    // install plugins etc.
+    const pinia = createPinia();
+    app.use(pinia);
+    app.use(naive);
 
-app.use(createPinia());
-app.use(createHead());
-app.use(router);
-app.use(naive);
-app.use(plausible);
+    if (import.meta.env.SSR) {
+      // this will be stringified and set to window.__INITIAL_STATE__
+      initialState.pinia = pinia.state.value;
+    } else {
+      // on the client side, we restore the state
+      pinia.state.value = initialState?.pinia || {};
+    }
 
-app.mount('#app');
+    if (isClient) {
+      app.use(plausible);
+      // import { registerSW } from 'virtual:pwa-register';
+      // registerSW();
+    }
+  },
+);

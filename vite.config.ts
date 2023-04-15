@@ -11,6 +11,8 @@ import Components from 'unplugin-vue-components/vite';
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers';
 import Unocss from 'unocss/vite';
 
+import pkg from './package.json';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -24,6 +26,7 @@ export default defineConfig({
         },
       ],
       vueTemplate: true,
+      dts: true,
       eslintrc: {
         enabled: true,
       },
@@ -77,6 +80,16 @@ export default defineConfig({
     }),
     Unocss(),
   ],
+
+  ssgOptions: {
+    formatting: 'prettify',
+  },
+
+  ssr: {
+    // noExternal: ['naive-ui'],
+    noExternal: Object.keys(pkg.dependencies || {}),
+  },
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
